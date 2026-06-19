@@ -1,0 +1,6 @@
+{
+  "name": "OBE RPS Generator",
+  "description": "AI-powered Rencana Pembelajaran Semester (RPS) generator matching BAN-PT outcome-based education formats for Institut KH. Ahmad Sanusi Sukabumi.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,153 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: "Outfit", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+/* Custom print media configuration for BAN-PT RPS document */
+@media print {
+  /* Set exact print margins for A4 landscape */
+  @page {
+    size: A4 landscape;
+    margin: 10mm 15mm 10mm 15mm;
+  }
+
+  /* Force background colors and exact colors to print (e.g. table shading) */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* Make sure every table element and cell uses thick solid black borders for BAN-PT compliance */
+  table, th, td, tr {
+    border-color: #000000 !important;
+  }
+
+  body {
+    background-color: white !important;
+    background: white !important;
+    color: black !important;
+    font-size: 9.5pt !important;
+    font-family: 'Times New Roman', Times, serif !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+  
+  /* Hide all generic workspace structures, tabs, buttons, sidebars */
+  body > * {
+    visibility: hidden !important;
+  }
+
+  /* Make only our target complete-rps-document element visible */
+  #complete-rps-document, #complete-rps-document * {
+    visibility: visible !important;
+  }
+
+  /* Extract complete-rps-document and stretch to full printable page area absolute */
+  #complete-rps-document {
+    visibility: visible !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    display: block !important;
+    overflow: visible !important;
+  }
+
+  /* Hide explicitly marked no-print UI aids like tips, inputs click areas, interactive toggles */
+  .no-print, 
+  .no-print *, 
+  button, 
+  input[type="number"], 
+  .scroll-to-top,
+  [role="tablist"] {
+    display: none !important;
+    height: 0 !important;
+    width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    opacity: 0 !important;
+  }
+
+  .only-print {
+    display: inline-block !important;
+  }
+
+  /* Improve table formatting for landscape rows */
+  table {
+    page-break-inside: auto !important;
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin-bottom: 4mm !important;
+    color: #000000 !important;
+  }
+
+  tr {
+    page-break-inside: avoid !important;
+    page-break-after: auto !important;
+  }
+
+  td, th {
+    padding: 4px 6px !important; /* Elegant tighter padding to fit content beautifully across 16 weeks */
+    font-size: 9pt !important;
+    line-height: 1.35 !important;
+    word-break: break-word !important;
+  }
+
+  /* Ensure bold classes carry over perfectly */
+  .font-bold, font-semibold {
+    font-weight: bold !important;
+  }
+
+  thead {
+    display: table-header-group !important;
+  }
+
+  /* Class for manually forced page breaks in multi-page reports */
+  .page-break {
+    page-break-before: always !important;
+    break-before: page !important;
+  }
+
+  /* Custom tweaks to prevent cutoffs of exam boxes and signature controls */
+  .signature-block, .exam-box {
+    page-break-inside: avoid !important;
+  }
+}
+
+/* Ensure only-print is hidden on screen display */
+@media screen {
+  .only-print {
+    display: none !important;
+  }
+}
+
+/* Scrollbars for web preview */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.4);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.6);
+}
+
