@@ -395,9 +395,15 @@ Catatan Tambahan untuk AI: ${customNotes || "Kembangkan materi secara komprehens
 
   } catch (error: any) {
     console.error("RPS Generation failed:", error);
+    
+    // Safely extract a string message to avoid circular structure serialization errors in JSON.stringify
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : (error?.message || (typeof error === 'object' ? JSON.stringify(error, Object.getOwnPropertyNames(error)) : String(error)));
+
     return res.status(500).json({
       error: "AI RPS Generation failed",
-      details: error.message || error
+      details: errorMessage
     });
   }
 });
