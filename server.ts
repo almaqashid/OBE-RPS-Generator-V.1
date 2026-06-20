@@ -192,18 +192,18 @@ Catatan Tambahan untuk AI: ${customNotes || "Kembangkan materi secara komprehens
     // Invoke Gemini Content Generation using our resilient retry-and-fallback helper
     const response = await generateContentWithRetryAndFallback(
       ai,
-      "gemini-2.5-flash",
-      ["gemini-2.0-flash", "gemini-1.5-flash"],
+      "gemini-3.5-flash",
+      ["gemini-3.1-flash-lite", "gemini-flash-latest"],
       userPrompt,
       {
         systemInstruction: systemInstruction,
         responseMimeType: "application/json",
         responseSchema: {
-          type: Type.OBJECT,
+          type: "OBJECT",
           required: ["meta", "cpl", "cpmk", "subCpmk", "pertemuan", "rencanaTugas", "kontrakPerkuliahan"],
           properties: {
             meta: {
-              type: Type.OBJECT,
+              type: "OBJECT",
               required: [
                 "namaMataKuliah",
                 "kodeMK",
@@ -226,72 +226,72 @@ Catatan Tambahan untuk AI: ${customNotes || "Kembangkan materi secara komprehens
                 "fakultas"
               ],
               properties: {
-                namaMataKuliah: { type: Type.STRING },
-                kodeMK: { type: Type.STRING },
-                rumpunMK: { type: Type.STRING },
-                sksteori: { type: Type.INTEGER },
-                skspraktik: { type: Type.INTEGER },
-                semester: { type: Type.INTEGER },
-                programStudi: { type: Type.STRING },
-                tanggalPenyusunan: { type: Type.STRING },
-                dosenPengembang: { type: Type.STRING },
-                nidnDosenPengembang: { type: Type.STRING },
-                koordinatorRMK: { type: Type.STRING },
-                nidnKoordinatorRMK: { type: Type.STRING },
-                koordinatorProdi: { type: Type.STRING },
-                nidnKoordinatorProdi: { type: Type.STRING },
-                deskripsiSingkat: { type: Type.STRING },
-                bahanKajian: { type: Type.ARRAY, items: { type: Type.STRING } },
-                pustakaUtama: { type: Type.ARRAY, items: { type: Type.STRING } },
-                pustakaPendukung: { type: Type.ARRAY, items: { type: Type.STRING } },
-                dosenPengampu: { type: Type.ARRAY, items: { type: Type.STRING } },
-                mataKuliahSyarat: { type: Type.STRING },
-                institusi: { type: Type.STRING },
-                fakultas: { type: Type.STRING }
+                namaMataKuliah: { type: "STRING" },
+                kodeMK: { type: "STRING" },
+                rumpunMK: { type: "STRING" },
+                sksteori: { type: "INTEGER" },
+                skspraktik: { type: "INTEGER" },
+                semester: { type: "INTEGER" },
+                programStudi: { type: "STRING" },
+                tanggalPenyusunan: { type: "STRING" },
+                dosenPengembang: { type: "STRING" },
+                nidnDosenPengembang: { type: "STRING" },
+                koordinatorRMK: { type: "STRING" },
+                nidnKoordinatorRMK: { type: "STRING" },
+                koordinatorProdi: { type: "STRING" },
+                nidnKoordinatorProdi: { type: "STRING" },
+                deskripsiSingkat: { type: "STRING" },
+                bahanKajian: { type: "ARRAY", items: { type: "STRING" } },
+                pustakaUtama: { type: "ARRAY", items: { type: "STRING" } },
+                pustakaPendukung: { type: "ARRAY", items: { type: "STRING" } },
+                dosenPengampu: { type: "ARRAY", items: { type: "STRING" } },
+                mataKuliahSyarat: { type: "STRING" },
+                institusi: { type: "STRING" },
+                fakultas: { type: "STRING" }
               }
             },
             cpl: {
-              type: Type.ARRAY,
+              type: "ARRAY",
               items: {
-                type: Type.OBJECT,
+                type: "OBJECT",
                 required: ["id", "kode", "deskripsi", "kategori"],
                 properties: {
-                  id: { type: Type.STRING },
-                  kode: { type: Type.STRING },
-                  deskripsi: { type: Type.STRING },
-                  kategori: { type: Type.STRING }
+                  id: { type: "STRING" },
+                  kode: { type: "STRING" },
+                  deskripsi: { type: "STRING" },
+                  kategori: { type: "STRING" }
                 }
               }
             },
             cpmk: {
-              type: Type.ARRAY,
+              type: "ARRAY",
               items: {
-                type: Type.OBJECT,
+                type: "OBJECT",
                 required: ["id", "deskripsi", "cplIds"],
                 properties: {
-                  id: { type: Type.STRING },
-                  deskripsi: { type: Type.STRING },
-                  cplIds: { type: Type.ARRAY, items: { type: Type.STRING } }
+                  id: { type: "STRING" },
+                  deskripsi: { type: "STRING" },
+                  cplIds: { type: "ARRAY", items: { type: "STRING" } }
                 }
               }
             },
             subCpmk: {
-              type: Type.ARRAY,
+              type: "ARRAY",
               items: {
-                type: Type.OBJECT,
+                type: "OBJECT",
                 required: ["id", "deskripsi", "cpmkId"],
                 properties: {
-                  id: { type: Type.STRING },
-                  deskripsi: { type: Type.STRING },
-                  cpmkId: { type: Type.STRING }
+                  id: { type: "STRING" },
+                  deskripsi: { type: "STRING" },
+                  cpmkId: { type: "STRING" }
                 }
               }
             },
             pertemuan: {
-              type: Type.ARRAY,
+              type: "ARRAY",
               description: "Must contain exactly 16 objects representing each week in chronological order.",
               items: {
-                type: Type.OBJECT,
+                type: "OBJECT",
                 required: [
                   "mingguKe",
                   "subCpmk",
@@ -303,19 +303,19 @@ Catatan Tambahan untuk AI: ${customNotes || "Kembangkan materi secara komprehens
                   "bobotPenilaian"
                 ],
                 properties: {
-                  mingguKe: { type: Type.INTEGER },
-                  subCpmk: { type: Type.STRING },
-                  indikator: { type: Type.STRING },
-                  kriteriaDanTeknik: { type: Type.STRING },
-                  metodeLuring: { type: Type.STRING },
-                  metodeDaring: { type: Type.STRING },
-                  materiPembelajaran: { type: Type.STRING },
-                  bobotPenilaian: { type: Type.INTEGER }
+                  mingguKe: { type: "INTEGER" },
+                  subCpmk: { type: "STRING" },
+                  indikator: { type: "STRING" },
+                  kriteriaDanTeknik: { type: "STRING" },
+                  metodeLuring: { type: "STRING" },
+                  metodeDaring: { type: "STRING" },
+                  materiPembelajaran: { type: "STRING" },
+                  bobotPenilaian: { type: "INTEGER" }
                 }
               }
             },
             rencanaTugas: {
-              type: Type.OBJECT,
+              type: "OBJECT",
               required: [
                 "judul",
                 "bentukTugas",
@@ -327,18 +327,18 @@ Catatan Tambahan untuk AI: ${customNotes || "Kembangkan materi secara komprehens
                 "jadwal"
               ],
               properties: {
-                judul: { type: Type.STRING },
-                bentukTugas: { type: Type.STRING },
-                deskripsiTugas: { type: Type.STRING },
-                metodePengerjaan: { type: Type.ARRAY, items: { type: Type.STRING } },
-                bentukLuaran: { type: Type.STRING },
-                indikatorPenilaian: { type: Type.ARRAY, items: { type: Type.STRING } },
-                bobotNilai: { type: Type.INTEGER },
-                jadwal: { type: Type.STRING }
+                judul: { type: "STRING" },
+                bentukTugas: { type: "STRING" },
+                deskripsiTugas: { type: "STRING" },
+                metodePengerjaan: { type: "ARRAY", items: { type: "STRING" } },
+                bentukLuaran: { type: "STRING" },
+                indikatorPenilaian: { type: "ARRAY", items: { type: "STRING" } },
+                bobotNilai: { type: "INTEGER" },
+                jadwal: { type: "STRING" }
               }
             },
             rencanaTugasMandiri: {
-              type: Type.OBJECT,
+              type: "OBJECT",
               required: [
                 "judul",
                 "bentukTugas",
@@ -350,32 +350,32 @@ Catatan Tambahan untuk AI: ${customNotes || "Kembangkan materi secara komprehens
                 "jadwal"
               ],
               properties: {
-                judul: { type: Type.STRING },
-                bentukTugas: { type: Type.STRING },
-                deskripsiTugas: { type: Type.STRING },
-                metodePengerjaan: { type: Type.ARRAY, items: { type: Type.STRING } },
-                bentukLuaran: { type: Type.STRING },
-                indikatorPenilaian: { type: Type.ARRAY, items: { type: Type.STRING } },
-                bobotNilai: { type: Type.INTEGER },
-                jadwal: { type: Type.STRING }
+                judul: { type: "STRING" },
+                bentukTugas: { type: "STRING" },
+                deskripsiTugas: { type: "STRING" },
+                metodePengerjaan: { type: "ARRAY", items: { type: "STRING" } },
+                bentukLuaran: { type: "STRING" },
+                indikatorPenilaian: { type: "ARRAY", items: { type: "STRING" } },
+                bobotNilai: { type: "INTEGER" },
+                jadwal: { type: "STRING" }
               }
             },
             kontrakPerkuliahan: {
-              type: Type.OBJECT,
+              type: "OBJECT",
               required: ["hakKewajiban", "tataTertib", "kriteriaKelulusan"],
               properties: {
-                hakKewajiban: { type: Type.ARRAY, items: { type: Type.STRING } },
-                tataTertib: { type: Type.ARRAY, items: { type: Type.STRING } },
+                hakKewajiban: { type: "ARRAY", items: { type: "STRING" } },
+                tataTertib: { type: "ARRAY", items: { type: "STRING" } },
                 kriteriaKelulusan: {
-                  type: Type.OBJECT,
+                  type: "OBJECT",
                   required: ["hadir", "tugasTerstruktur", "tugasMandiri", "tugas", "uts", "uas"],
                   properties: {
-                    hadir: { type: Type.INTEGER },
-                    tugasTerstruktur: { type: Type.INTEGER },
-                    tugasMandiri: { type: Type.INTEGER },
-                    tugas: { type: Type.INTEGER },
-                    uts: { type: Type.INTEGER },
-                    uas: { type: Type.INTEGER }
+                    hadir: { type: "INTEGER" },
+                    tugasTerstruktur: { type: "INTEGER" },
+                    tugasMandiri: { type: "INTEGER" },
+                    tugas: { type: "INTEGER" },
+                    uts: { type: "INTEGER" },
+                    uas: { type: "INTEGER" }
                   }
                 }
               }
