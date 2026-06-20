@@ -416,8 +416,9 @@ export default function App() {
         } catch {
           try {
             const txt = await response.text();
-            if (txt && txt.length < 150) {
-              errMsg += ` Detail: "${txt}"`;
+            if (txt) {
+              const cleanTxt = txt.length > 500 ? txt.substring(0, 500) + "..." : txt;
+              errMsg += ` Detail: "${cleanTxt}"`;
             }
           } catch {}
         }
