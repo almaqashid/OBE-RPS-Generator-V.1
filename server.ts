@@ -93,6 +93,15 @@ async function generateContentWithRetryAndFallback(
   throw lastError || new Error("All AI models are currently experiencing high demand. Please try again in a few moments.");
 }
 
+// Diagnostic Health Check Route
+app.get("/api/health", (req, res) => {
+  res.json({
+    status: "ok",
+    message: "Express backend is healthy and running on port 3000!",
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Service / API Endpoint for AI Generation of standard BAN-PT OBE RPS
 app.post("/api/generate-rps", async (req, res) => {
   try {

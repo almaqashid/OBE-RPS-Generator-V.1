@@ -221,6 +221,22 @@ export default function App() {
     return initialMap;
   });
 
+  const toggleCpl = (id: string) => {
+    const isChecked = checkedCplIds[id] || false;
+    const nextMap = { ...checkedCplIds, [id]: !isChecked };
+    setCheckedCplIds(nextMap);
+    
+    // Also sync to drafted CPLs in real time so the document updates immediately
+    if (rpsData) {
+      const parentProdi = ACADEMIC_STUDY_PROGRAMS[selectedProdiIndex];
+      const nextActiveCpls = parentProdi.defaultCPLs.filter(c => nextMap[c.id]);
+      setRpsData({
+        ...rpsData,
+        cpl: nextActiveCpls
+      });
+    }
+  };
+
   // Bloom's taxonomy visualizer level
   const [selectedBloomLevel, setSelectedBloomLevel] = useState<string>("C4");
 
@@ -318,8 +334,14 @@ export default function App() {
     }
     
     // Auto populate course suggestions based on selection
+    let targetMKName = "";
+    let targetMKKode = "";
+    let targetMKSks = 2;
     if (selectedProdi.mataKuliahCatalog.length > 0) {
       const firstMK = selectedProdi.mataKuliahCatalog[0];
+      targetMKName = firstMK.nama;
+      targetMKKode = firstMK.kode;
+      targetMKSks = firstMK.sks;
       setCustomCourseName(firstMK.nama);
       setCustomCourseCode(firstMK.kode);
       setSksTeori(firstMK.sks);
@@ -332,6 +354,22 @@ export default function App() {
       checkMap[c.id] = true;
     });
     setCheckedCplIds(checkMap);
+
+    // Also update rpsData draft in real-time to prevent desynchronization of the preview!
+    if (rpsData) {
+      setRpsData({
+        ...rpsData,
+        meta: {
+          ...rpsData.meta,
+          programStudi: selectedProdi.prodi,
+          fakultas: selectedProdi.fakultas,
+          namaMataKuliah: targetMKName || rpsData.meta.namaMataKuliah,
+          kodeMK: targetMKKode || rpsData.meta.kodeMK,
+          sksteori: targetMKSks,
+        },
+        cpl: selectedProdi.defaultCPLs
+      });
+    }
   };
 
 
@@ -371,8 +409,19 @@ export default function App() {
       });
 
       if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.details || errData.error || "Gagal membangun RPS. Coba periksa koneksi atau setelan API.");
+        let errMsg = `Gagal membangun RPS. Server merespon dengan status ${response.status}.`;
+        try {
+          const errData = await response.json();
+          errMsg = errData.details || errData.error || errMsg;
+        } catch {
+          try {
+            const txt = await response.text();
+            if (txt && txt.length < 150) {
+              errMsg += ` Detail: "${txt}"`;
+            }
+          } catch {}
+        }
+        throw new Error(errMsg);
       }
 
       const generatedRps = await response.json();
@@ -976,7 +1025,7 @@ export default function App() {
                       <input 
                         type="checkbox"
                         checked={isChecked}
-                        onChange={() => setCheckedCplIds({ ...checkedCplIds, [c.id]: !isChecked })}
+                        onChange={() => toggleCpl(c.id)}
                         className="mt-0.5 rounded text-indigo-600 focus:ring-indigo-500 w-3.5 h-3.5"
                       />
                       <div>
