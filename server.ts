@@ -22,7 +22,7 @@ function getGenAI(): GoogleGenAI {
   if (!aiClient) {
     const key = process.env.GEMINI_API_KEY;
     if (!key) {
-      throw new Error("GEMINI_API_KEY is not defined in the environment. Please configure it in the Secrets panel on AI Studio.");
+      throw new Error("GEMINI_API_KEY is not defined. Please add a valid Google Gemini API Key as 'GEMINI_API_KEY' in your Vercel Project Environment Variables (Settings > Environment Variables) or in your AI Studio Settings/Secrets panel.");
     }
     aiClient = new GoogleGenAI({
       apiKey: key,
@@ -428,6 +428,8 @@ async function startServer() {
   }
 }
 
-startServer();
+if (!process.env.VERCEL) {
+  startServer();
+}
 
 export default app;
