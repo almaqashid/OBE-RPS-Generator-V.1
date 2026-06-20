@@ -211,7 +211,15 @@ export default function App() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Selected CPLs checklist state
-  const [checkedCplIds, setCheckedCplIds] = useState<Record<string, boolean>>({});
+  const [checkedCplIds, setCheckedCplIds] = useState<Record<string, boolean>>(() => {
+    const initialMap: Record<string, boolean> = {};
+    if (typeof window !== "undefined" && ACADEMIC_STUDY_PROGRAMS && ACADEMIC_STUDY_PROGRAMS[0]) {
+      ACADEMIC_STUDY_PROGRAMS[0].defaultCPLs.forEach(c => {
+        initialMap[c.id] = true;
+      });
+    }
+    return initialMap;
+  });
 
   // Bloom's taxonomy visualizer level
   const [selectedBloomLevel, setSelectedBloomLevel] = useState<string>("C4");
