@@ -193,8 +193,8 @@ Catatan Tambahan untuk AI: ${customNotes || "Kembangkan materi secara komprehens
     // Invoke Gemini Content Generation using our resilient retry-and-fallback helper
     const response = await generateContentWithRetryAndFallback(
       ai,
-      "gemini-3.5-flash",
-      ["gemini-3.1-flash-lite", "gemini-flash-latest"],
+      "gemini-2.5-flash",
+      ["gemini-2.0-flash", "gemini-1.5-flash"],
       userPrompt,
       {
         systemInstruction: systemInstruction,
