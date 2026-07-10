@@ -411,16 +411,18 @@ export default function App() {
       if (!response.ok) {
         let errMsg = `Gagal membangun RPS. Server merespon dengan status ${response.status}.`;
         try {
-          const errData = await response.json();
-          errMsg = errData.details || errData.error || errMsg;
-        } catch {
-          try {
-            const txt = await response.text();
-            if (txt) {
+          const txt = await response.text();
+          if (txt) {
+            try {
+              const errData = JSON.parse(txt);
+              errMsg = errData.details || errData.error || errMsg;
+            } catch {
               const cleanTxt = txt.length > 500 ? txt.substring(0, 500) + "..." : txt;
               errMsg += ` Detail: "${cleanTxt}"`;
             }
-          } catch {}
+          }
+        } catch (readErr: any) {
+          errMsg += ` (Gagal membaca body: ${readErr.message})`;
         }
         throw new Error(errMsg);
       }
