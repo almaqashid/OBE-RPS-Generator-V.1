@@ -3,10 +3,10 @@ export default function handler(req: any, res: any) {
   res.setHeader("Content-Type", "application/json");
   res.end(
     JSON.stringify({
-      name: "Institut KH. Ahmad Sanusi Sukabumi - OBE RPS Generator API",
-      status: "online",
-      endpoints: ["/api/generate-rps", "/api/health"],
+      status: "ok",
+      message: "OBE RPS Vercel Serverless Function is healthy!",
       timestamp: new Date().toISOString(),
+      hasGeminiKey: !!process.env.GEMINI_API_KEY,
     })
   );
 }

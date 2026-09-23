@@ -418,7 +418,11 @@ export default function App() {
               errMsg = errData.details || errData.error || errMsg;
             } catch {
               const cleanTxt = txt.length > 500 ? txt.substring(0, 500) + "..." : txt;
-              errMsg += ` Detail: "${cleanTxt}"`;
+              if (cleanTxt.includes("FUNCTION_INVOCATION_FAILED") || response.status === 500) {
+                errMsg = `Gagal menjalankan API Serverless Vercel (Status 500). Pastikan variabel lingkungan 'GEMINI_API_KEY' telah ditambahkan di Vercel Dashboard (Settings > Environment Variables), lalu deploy ulang. Detail: "${cleanTxt}"`;
+              } else {
+                errMsg += ` Detail: "${cleanTxt}"`;
+              }
             }
           }
         } catch (readErr: any) {
