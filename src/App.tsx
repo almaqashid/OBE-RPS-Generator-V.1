@@ -707,7 +707,165 @@ export default function App() {
   };
 
   const triggerNativePrint = () => {
-    window.print();
+    if (!rpsData) return;
+
+    // Immediately switch tab to preview so the user sees the rendered official document
+    setActiveTab("preview");
+
+    // Perform isolated high-fidelity iframe print
+    setTimeout(() => {
+      const docElement = document.getElementById("complete-rps-document");
+      if (!docElement) {
+        window.print();
+        return;
+      }
+
+      try {
+        // Remove existing print sandbox if any
+        const existingFrame = document.getElementById("isolated-print-sandbox");
+        if (existingFrame) {
+          existingFrame.remove();
+        }
+
+        const iframe = document.createElement("iframe");
+        iframe.id = "isolated-print-sandbox";
+        iframe.style.position = "fixed";
+        iframe.style.right = "0";
+        iframe.style.bottom = "0";
+        iframe.style.width = "0";
+        iframe.style.height = "0";
+        iframe.style.border = "none";
+        iframe.style.opacity = "0";
+        iframe.style.pointerEvents = "none";
+        document.body.appendChild(iframe);
+
+        const iframeDoc = iframe.contentWindow?.document || iframe.contentDocument;
+        if (!iframeDoc) {
+          window.print();
+          return;
+        }
+
+        const docTitle = `RPS_${(rpsData.meta.kodeMK || "OBE").replace(/[^a-zA-Z0-9]/g, "_")}_${rpsData.meta.namaMataKuliah.replace(/\s+/g, "_")}`;
+
+        iframeDoc.open();
+        iframeDoc.write(`<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <title>${docTitle}</title>
+  <style>
+    @page {
+      size: A4 landscape;
+      margin: 10mm 12mm 10mm 12mm;
+    }
+    *, *::before, *::after {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      color-adjust: exact !important;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: #ffffff !important;
+      color: #000000 !important;
+      font-family: "Times New Roman", Times, serif;
+      font-size: 9.5pt;
+      line-height: 1.35;
+      width: 100%;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      page-break-inside: auto;
+      margin-bottom: 4mm;
+      background-color: #ffffff;
+    }
+    table, th, td, tr {
+      border-color: #000000 !important;
+    }
+    tr {
+      page-break-inside: avoid;
+    }
+    th, td {
+      border: 1px solid #000000;
+      padding: 4px 6px;
+      vertical-align: top;
+      word-break: break-word;
+      font-size: 9pt;
+      color: #000000;
+    }
+    thead {
+      display: table-header-group;
+    }
+    .no-print {
+      display: none !important;
+    }
+    .only-print {
+      display: inline-block !important;
+    }
+    .page-break {
+      page-break-before: always;
+      break-before: page;
+    }
+    .font-bold { font-weight: bold; }
+    .font-semibold { font-weight: 600; }
+    .font-medium { font-weight: 500; }
+    .font-normal { font-weight: normal; }
+    .text-center { text-align: center; }
+    .text-right { text-align: right; }
+    .text-left { text-align: left; }
+    .uppercase { text-transform: uppercase; }
+    .italic { font-style: italic; }
+    .underline { text-decoration: underline; }
+    .bg-slate-50, .bg-gray-50 { background-color: #f8fafc !important; }
+    .bg-slate-100, .bg-gray-100 { background-color: #f1f5f9 !important; }
+    .bg-white { background-color: #ffffff !important; }
+    .text-black { color: #000000 !important; }
+    .m-0 { margin: 0; }
+    .mt-0\\.5 { margin-top: 0.125rem; }
+    .mt-1 { margin-top: 0.25rem; }
+    .mt-2 { margin-top: 0.5rem; }
+    .mt-4 { margin-top: 1rem; }
+    .mt-6 { margin-top: 1.5rem; }
+    .mt-12 { margin-top: 3rem; }
+    .mb-2 { margin-bottom: 0.5rem; }
+    .mb-3 { margin-bottom: 0.75rem; }
+    .mb-4 { margin-bottom: 1rem; }
+    .mb-6 { margin-bottom: 1.5rem; }
+    .p-1 { padding: 0.25rem; }
+    .p-1\\.5 { padding: 0.375rem; }
+    .p-2 { padding: 0.5rem; }
+    .p-2\\.5 { padding: 0.625rem; }
+    .p-3 { padding: 0.75rem; }
+    .p-4 { padding: 1rem; }
+    .p-8, .p-12 { padding: 0 !important; }
+    .leading-relaxed { line-height: 1.625; }
+    .leading-tight { line-height: 1.25; }
+    .grid { display: block; }
+    img { max-height: 55px; width: auto; display: block; margin: 0 auto; }
+  </style>
+</head>
+<body>
+  ${docElement.innerHTML}
+</body>
+</html>`);
+        iframeDoc.close();
+
+        setTimeout(() => {
+          try {
+            iframe.contentWindow?.focus();
+            iframe.contentWindow?.print();
+          } catch (e) {
+            console.warn("Iframe print error, falling back to window.print:", e);
+            window.print();
+          }
+        }, 250);
+      } catch (err) {
+        console.error("Print error:", err);
+        window.print();
+      }
+    }, 150);
   };
 
   const handleSsoSubmit = (e: FormEvent) => {
@@ -1104,7 +1262,7 @@ export default function App() {
             {/* Visualizer and Curation Header */}
             {rpsData ? (
               <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col gap-5">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                <div className="no-print flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
                   <div>
                     <span className="text-xs font-bold text-indigo-600 uppercase tracking-widest font-display bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100/50">AKTIF: {rpsData.meta.kodeMK}</span>
                     <h2 className="text-2xl font-display font-extrabold text-slate-900 mt-2">{rpsData.meta.namaMataKuliah}</h2>
@@ -1122,7 +1280,7 @@ export default function App() {
                     <button
                       onClick={triggerNativePrint}
                       className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-lg text-xs font-bold flex items-center gap-2 cursor-pointer shadow-md transition-all uppercase tracking-wider"
-                      title="Cetak & Unduh format PDF Resmi BAN-PT"
+                      title="Cetak & Unduh format PDF Resmi BAN-PT (A4 Landscape)"
                       id="btn-print-pdf"
                     >
                       <Printer className="w-4 h-4" /> <span>Unduh PDF Resmi</span>
@@ -1139,7 +1297,7 @@ export default function App() {
                 </div>
 
                 {/* Sub-Tab Navigation for granular tuning */}
-                <div className="flex items-center gap-1 bg-slate-100 p-1.5 rounded-xl overflow-x-auto border border-slate-200">
+                <div className="no-print flex items-center gap-1 bg-slate-100 p-1.5 rounded-xl overflow-x-auto border border-slate-200">
                   <button
                     onClick={() => setActiveTab("visualizer")}
                     className={`shrink-0 px-4 py-2.5 rounded-lg text-xs font-bold transition-all ${
@@ -1196,7 +1354,7 @@ export default function App() {
 
                 {/* TAB 1: VISUALIZER (CPL - CPMK Mappings & Bloom's Taxonomy Visualizer) */}
                 {activeTab === "visualizer" && (
-                  <div className="flex flex-col gap-6 animate-fadeIn">
+                  <div className="no-print flex flex-col gap-6 animate-fadeIn">
                                         {/* Course Summary & Description editor */}
                     <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl">
                       <div className="flex items-center justify-between border-b border-slate-200 pb-2 mb-3">
@@ -1499,7 +1657,7 @@ export default function App() {
 
                 {/* TAB 2: 16 MEETINGS SCHEDULE CO-ORDINATION */}
                 {activeTab === "meetings" && (
-                  <div className="flex flex-col gap-4 animate-fadeIn">
+                  <div className="no-print flex flex-col gap-4 animate-fadeIn">
                     <div className="flex items-center justify-between">
                       <div>
                         <label className="text-xs font-bold uppercase text-slate-700 tracking-wider">Matriks Seluruh 16 Pertemuan Akademik</label>
@@ -1612,7 +1770,7 @@ export default function App() {
 
                  {/* TAB 3: STUDENT ASSIGNMENTS / RTM */}
                  {activeTab === "tm" && (
-                   <div className="flex flex-col gap-6 animate-fadeIn">
+                   <div className="no-print flex flex-col gap-6 animate-fadeIn">
                      <div className="border-b border-slate-100 pb-2">
                        <label className="text-xs font-bold uppercase text-slate-700 tracking-wider">Rencana Tugas Mahasiswa (RTM) OBE</label>
                        <p className="text-[10px] text-slate-400">Merangkum penugasan Tugas Terstruktur (Kelompok) dan Tugas Mandiri (Individual).</p>
@@ -1847,7 +2005,7 @@ export default function App() {
 
                 {/* TAB 4: CONTRACTS AND REGULATIONS */}
                 {activeTab === "contract" && (
-                  <div className="flex flex-col gap-6 animate-fadeIn">
+                  <div className="no-print flex flex-col gap-6 animate-fadeIn">
                     <div className="border-b border-slate-100 pb-2">
                       <label className="text-xs font-bold uppercase text-slate-700 tracking-wider">Kontrak Perkuliahan & Aturan Kelas</label>
                       <p className="text-[10px] text-slate-400">Menyepakati tata tertib, hak, kewajiban, dan kriteria kelulusan mahasiswa.</p>
@@ -2019,54 +2177,53 @@ export default function App() {
                 )}
 
                 {/* TAB 5: ACTIVE LIVE BAN-PT DOCUMENT AND PDF ENGINE PREVIEW */}
-                {activeTab === "preview" && (
-                  <div className="flex flex-col gap-4 animate-fadeIn">
-                    
-                    <div className="bg-indigo-50/50 text-indigo-950 p-4 rounded-xl border border-indigo-100 flex items-start gap-3">
-                      <Info className="w-5 h-5 shrink-0 text-indigo-600" />
-                      <div className="text-xs">
-                        <p className="font-semibold">Format Dokumen Cetak Terstandar BAN-PT</p>
-                        <p className="mt-1 leading-relaxed">Tampilan di bawah adalah draf visual asli yang akan diretas langsung ke print engine browser. Gunakan tombol "Unduh PDF Resmi" di atas untuk menyimpan sebagai dokumen cetak A4 vector yang amat presisi.</p>
-                      </div>
+                <div className={activeTab === "preview" ? "flex flex-col gap-4 animate-fadeIn" : "hidden print:block"}>
+                  
+                  <div className="no-print bg-indigo-50/50 text-indigo-950 p-4 rounded-xl border border-indigo-100 flex items-start gap-3">
+                    <Info className="w-5 h-5 shrink-0 text-indigo-600" />
+                    <div className="text-xs">
+                      <p className="font-semibold">Format Dokumen Cetak Terstandar BAN-PT (A4 Landscape)</p>
+                      <p className="mt-1 leading-relaxed">Tampilan di bawah adalah draf visual asli dokumen RPS OBE terverifikasi. Gunakan tombol "Unduh PDF Resmi" di atas untuk mencetak atau mengunduh sebagai dokumen cetak A4 vector yang amat presisi.</p>
                     </div>
+                  </div>
 
-                    {/* PDF Document Render Container (the printable part) */}
-                    <div className="border border-slate-300 rounded-xl overflow-hidden shadow-md bg-white">
+                  {/* PDF Document Render Container (the printable part) */}
+                  <div className="print-wrapper border border-slate-300 rounded-xl overflow-hidden shadow-md bg-white print:border-none print:shadow-none print:overflow-visible">
+                    
+                    {/* RPS Document Canvas styled natively like standard academic reports */}
+                    <div 
+                      id="complete-rps-document" 
+                      className="print-area p-8 sm:p-12 overflow-x-auto text-[11pt] tracking-normal leading-relaxed text-black print:p-0 print:overflow-visible"
+                      style={{ fontFamily: 'Times New Roman, serif' }}
+                    >
                       
-                      {/* RPS Document Canvas styled natively like standard academic reports */}
-                      <div 
-                        id="complete-rps-document" 
-                        className="print-area p-8 sm:p-12 overflow-x-auto text-[11pt] tracking-normal leading-relaxed text-black"
-                        style={{ fontFamily: 'Times New Roman, serif' }}
-                      >
-                        
-                        {/* HEADER BAN-PT SECTION WITH OFFICIAL CAMPUS BRANDING */}
-                        <table className="w-full border-collapse mb-6" style={{ border: '2px solid black' }}>
-                          <tbody>
-                            <tr className="align-middle">
-                              {/* Campus Logo Column */}
-                              <td className="p-2 text-center border-r-2 border-black w-[15%] align-middle bg-white" style={{ borderRight: '2px solid black' }}>
-                                <img 
-                                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQZ6gfmGc3dV1Us3RI5p8wC67v474a4ZdAZqA&s" 
-                                  alt="Logo" 
-                                  referrerPolicy="no-referrer"
-                                  className="w-14 h-12 object-contain mx-auto"
-                                />
+                      {/* HEADER BAN-PT SECTION WITH OFFICIAL CAMPUS BRANDING */}
+                      <table className="w-full border-collapse mb-6" style={{ border: '2px solid black' }}>
+                        <tbody>
+                          <tr className="align-middle">
+                            {/* Campus Logo Column */}
+                            <td className="p-2 text-center border-r-2 border-black w-[15%] align-middle bg-white" style={{ borderRight: '2px solid black' }}>
+                              <img 
+                                src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQZ6gfmGc3dV1Us3RI5p8wC67v474a4ZdAZqA&s" 
+                                alt="Logo" 
+                                referrerPolicy="no-referrer"
+                                className="w-14 h-12 object-contain mx-auto"
+                              />
 
-                              </td>
-                              {/* Institution Metadata */}
-                              <td className="p-4 text-center border-black w-[85%] bg-white">
-                                <h1 className="text-sm font-bold uppercase tracking-wide m-0" style={{ fontSize: '13pt' }}>
-                                  {rpsData.meta.institusi || "UNIVERSITAS ISLAM NEGERI SUMATERA UTARA"}
-                                </h1>
-                                <h2 className="text-xs font-bold uppercase m-0 mt-1" style={{ fontSize: '11pt' }}>
-                                  {rpsData.meta.fakultas || "FAKULTAS SYARIAH DAN HUKUM"}
-                                </h2>
-                                <h3 className="text-xs font-bold uppercase m-0 mt-0.5" style={{ fontSize: '10pt', color: '#312e81' }}>
-                                  PROGRAM STUDI {rpsData.meta.programStudi.toUpperCase()}
-                                </h3>
-                              </td>
-                            </tr>
+                            </td>
+                            {/* Institution Metadata */}
+                            <td className="p-4 text-center border-black w-[85%] bg-white">
+                              <h1 className="text-sm font-bold uppercase tracking-wide m-0" style={{ fontSize: '13pt' }}>
+                                {rpsData.meta.institusi || "INSTITUT KH. AHMAD SANUSI SUKABUMI"}
+                              </h1>
+                              <h2 className="text-xs font-bold uppercase m-0 mt-1" style={{ fontSize: '11pt' }}>
+                                {rpsData.meta.fakultas || "FAKULTAS SYARI'AH"}
+                              </h2>
+                              <h3 className="text-xs font-bold uppercase m-0 mt-0.5" style={{ fontSize: '10pt', color: '#312e81' }}>
+                                PROGRAM STUDI {rpsData.meta.programStudi.toUpperCase()}
+                              </h3>
+                            </td>
+                          </tr>
                             <tr className="border-t-2 border-black">
                               <td colSpan={2} className="p-2.5 text-center font-bold uppercase bg-slate-50 text-[11pt]" style={{ borderTop: '2px solid black' }}>
                                 RENCANA PEMBELAJARAN SEMESTER (RPS)
@@ -2811,7 +2968,6 @@ export default function App() {
                     </div>
 
                   </div>
-                )}
 
               </div>
             ) : (

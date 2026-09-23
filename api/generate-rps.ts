@@ -31,11 +31,11 @@ async function generateContentWithRetryAndFallback(
 
   for (const model of models) {
     let attempt = 0;
-    const maxRetries = 2;
+    const maxRetries = 1;
 
-    while (attempt < maxRetries) {
+    while (attempt <= maxRetries) {
       try {
-        console.log(`[Vercel Serverless] Trying model "${model}" (Attempt ${attempt + 1}/${maxRetries})...`);
+        console.log(`[Vercel Serverless] Trying model "${model}" (Attempt ${attempt + 1})...`);
         const response = await ai.models.generateContent({
           model,
           contents,
@@ -51,11 +51,26 @@ async function generateContentWithRetryAndFallback(
       } catch (err: any) {
         attempt++;
         lastError = err;
-        console.warn(`[Vercel Serverless] Attempt ${attempt} on model "${model}" failed:`, err?.message || err);
+        const errStr = err?.message || String(err);
+        console.warn(`[Vercel Serverless] Attempt ${attempt} on model "${model}" failed:`, errStr);
 
-        // Delay 1.5s before retry
-        if (attempt < maxRetries) {
-          await new Promise((resolve) => setTimeout(resolve, 1500));
+        // If the model is overloaded or unavailable (503 / high demand), failover immediately without wasting time
+        const isOverloadedOrUnavailable = 
+          errStr.includes("503") || 
+          errStr.toLowerCase().includes("unavailable") || 
+          errStr.toLowerCase().includes("overloaded") ||
+          errStr.toLowerCase().includes("high demand");
+
+        if (isOverloadedOrUnavailable) {
+          console.log(`[Vercel Serverless] Model "${model}" is overloaded (503). Immediately failing over to next available model...`);
+          break; // Try next model immediately
+        }
+
+        const isRateLimited = errStr.includes("429") || errStr.toLowerCase().includes("resource exhausted");
+        if (isRateLimited && attempt <= maxRetries) {
+          await new Promise((resolve) => setTimeout(resolve, 800));
+        } else {
+          break;
         }
       }
     }
@@ -200,11 +215,10 @@ ${customNotes || "Sesuaikan secara mutakhir dengan standar BAN-PT dan OBE Nasion
 Buatlah struktur JSON valid yang lengkap sesuai responseSchema tanpa teks pembuka atau penutup markdown.`;
 
     const modelsToTry = [
-      "gemini-2.5-flash",
-      "gemini-3.8-flash",
+      "gemini-3.6-flash",
       "gemini-3.1-flash-lite",
       "gemini-flash-latest",
-      "gemini-2.0-flash",
+      "gemini-3.8-flash",
     ];
 
     const response = await generateContentWithRetryAndFallback(

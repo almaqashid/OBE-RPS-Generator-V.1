@@ -48,48 +48,53 @@ async function generateContentWithRetryAndFallback(
 
   for (const model of models) {
     let attempt = 0;
-    const maxRetries = 2; // Run up to 2 retries per model
-    
-    while (attempt < maxRetries) {
+    const maxRetriesPerModel = 1;
+
+    while (attempt <= maxRetriesPerModel) {
       try {
-        console.log(`[AI Gen] Trying model "${model}" (Attempt ${attempt + 1}/${maxRetries})...`);
+        console.log(`[AI Gen] Trying model "${model}" (Attempt ${attempt + 1})...`);
         const response = await ai.models.generateContent({
           model,
           contents,
           config,
         });
-        
+
         if (response && response.text) {
-          console.log(`[AI Gen] Success with model "${model}" on attempt ${attempt + 1}!`);
+          console.log(`[AI Gen] Success with model "${model}"!`);
           return response;
         }
-        
+
         throw new Error("Empty response output");
       } catch (err: any) {
         attempt++;
         lastError = err;
         const errStr = err?.message || String(err);
-        console.error(`[AI Gen] Error with model "${model}" (Attempt ${attempt}): ${errStr}`);
-        
-        // Check if it is a transient/overload issue
-        const isTransient = errStr.includes("503") || 
-                            errStr.toLowerCase().includes("unavailable") || 
-                            errStr.toLowerCase().includes("overloaded") ||
-                            errStr.toLowerCase().includes("high demand") ||
-                            errStr.toLowerCase().includes("quota");
-        
-        if (isTransient && attempt < maxRetries) {
-          const backoffTime = attempt * 1500 + Math.random() * 500;
-          console.log(`[AI Gen] Transient error detected. Backing off for ${backoffTime.toFixed(0)}ms before retrying "${model}"...`);
-          await new Promise(resolve => setTimeout(resolve, backoffTime));
+        console.warn(`[AI Gen] Model "${model}" failed (Attempt ${attempt}): ${errStr}`);
+
+        // If the model is saturated or unavailable (503 / high demand), failover immediately without wasting time
+        const isOverloadedOrUnavailable = 
+          errStr.includes("503") || 
+          errStr.toLowerCase().includes("unavailable") || 
+          errStr.toLowerCase().includes("overloaded") ||
+          errStr.toLowerCase().includes("high demand");
+
+        if (isOverloadedOrUnavailable) {
+          console.log(`[AI Gen] Model "${model}" is overloaded (503). Immediately failing over to next available model...`);
+          break; // Try next model immediately
+        }
+
+        const isRateLimited = errStr.includes("429") || errStr.toLowerCase().includes("resource exhausted");
+        if (isRateLimited && attempt <= maxRetriesPerModel) {
+          console.log(`[AI Gen] Rate limit (429) detected. Short backoff for 800ms before retry on "${model}"...`);
+          await new Promise((resolve) => setTimeout(resolve, 800));
         } else {
-          break; // Fall through or try next model
+          break; // Fall through to next model
         }
       }
     }
   }
 
-  throw lastError || new Error("All AI models are currently experiencing high demand. Please try again in a few moments.");
+  throw lastError || new Error("Semua model AI sedang mengalami beban tinggi. Silakan coba beberapa saat lagi.");
 }
 
 // Diagnostic Health Check Route
@@ -192,8 +197,8 @@ Catatan Tambahan untuk AI: ${customNotes || "Kembangkan materi secara komprehens
     // Invoke Gemini Content Generation using our resilient retry-and-fallback helper
     const response = await generateContentWithRetryAndFallback(
       ai,
-      "gemini-2.5-flash",
-      ["gemini-3.8-flash", "gemini-3.1-flash-lite", "gemini-flash-latest", "gemini-2.0-flash"],
+      "gemini-3.6-flash",
+      ["gemini-3.1-flash-lite", "gemini-flash-latest", "gemini-3.8-flash"],
       userPrompt,
       {
         systemInstruction: systemInstruction,
